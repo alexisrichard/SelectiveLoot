@@ -215,7 +215,7 @@ swTitle:SetText("Options")
 local nav = settingsWin:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 nav:SetPoint("TOPLEFT", settingsWin, "TOPLEFT", 24, -50)
 nav:SetJustifyH("LEFT")
-nav:SetText("|cff9d9d9dJeu|r\n\n|cffffd100AddOns|r\n\n   |cffffffffSelectiveLoot|r")
+nav:SetText("|cff9d9d9dJeu|r\n\n|cffffd100AddOns|r")
 
 local canvas = CreateFrame("Frame", nil, settingsWin)
 canvas:SetPoint("TOPLEFT", settingsWin, "TOPLEFT", 220, -44)
@@ -231,28 +231,55 @@ closeBtn:SetPoint("BOTTOMRIGHT", settingsWin, "BOTTOMRIGHT", -20, 16)
 closeBtn:SetText("Fermer")
 closeBtn:SetScript("OnClick", function() settingsWin:Hide() end)
 
-local categories = {}
+local categories, navButtons = {}, {}
+local current
+
+local function Select(cat)
+	if current and current ~= cat then current.frame:Hide() end
+	current = cat
+	local f = cat.frame
+	f:SetParent(canvas)
+	f:ClearAllPoints()
+	f:SetAllPoints(canvas)
+	defaultsBtn:SetScript("OnClick", function() if f.OnDefault then f.OnDefault() end end)
+	settingsWin:Show()
+	f:Hide()
+	f:Show()
+	for c, b in pairs(navButtons) do
+		b.text:SetTextColor(c == cat and 1 or 0.8, c == cat and 0.82 or 0.8, c == cat and 0 or 0.8)
+	end
+end
+
+local function Register(frame, name, depth)
+	local cat = { frame = frame, name = name }
+	function cat:GetID() return name end
+	categories[name] = cat
+	local b = CreateFrame("Button", nil, settingsWin)
+	b:SetSize(180, 18)
+	local n = 0
+	for _ in pairs(navButtons) do n = n + 1 end
+	b:SetPoint("TOPLEFT", settingsWin, "TOPLEFT", 30 + depth * 14, -96 - n * 20)
+	b.text = b:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	b.text:SetPoint("LEFT", b, "LEFT", 0, 0)
+	b.text:SetText(name)
+	b:SetScript("OnClick", function() Select(cat) end)
+	navButtons[cat] = b
+	return cat
+end
+
 Settings = {
-	RegisterCanvasLayoutCategory = function(frame, name)
-		local cat = { frame = frame, name = name }
-		function cat:GetID() return name end
-		categories[name] = cat
-		return cat
-	end,
+	RegisterCanvasLayoutCategory = function(frame, name) return Register(frame, name, 0) end,
+	RegisterCanvasLayoutSubcategory = function(_, frame, name) return Register(frame, name, 1) end,
 	RegisterAddOnCategory = function() end,
 	OpenToCategory = function(id)
-		local cat = categories[id]
-		if not cat then return end
-		local f = cat.frame
-		f:SetParent(canvas)
-		f:ClearAllPoints()
-		f:SetAllPoints(canvas)
-		defaultsBtn:SetScript("OnClick", function() if f.OnDefault then f.OnDefault() end end)
-		settingsWin:Show()
-		f:Hide()
-		f:Show()
+		if categories[id] then Select(categories[id]) end
 	end,
 }
+function settingsWin:SelectCategory(cat) Select(cat) end
+closeBtn:SetScript("OnClick", function()
+	if current then current.frame:Hide() end
+	settingsWin:Hide()
+end)
 
 ---------------------------------------------------------------------------
 -- Sac à dos
