@@ -1,10 +1,12 @@
 -- SelectiveLoot : ramasse tout le butin sauf les objets de la liste d'ignorés.
 -- Cible : World of Warcraft: Forever (API moderne, Interface 16001).
+-- Textes : Locales.lua (ns.L), langue choisie dans les options.
 
 local ADDON, ns = ...
+local L = ns.L
 
 BINDING_HEADER_SELECTIVELOOT = "SelectiveLoot"
-BINDING_NAME_SELECTIVELOOT_TOGGLE = "Ignorer / ramasser l'objet survolé"
+BINDING_NAME_SELECTIVELOOT_TOGGLE = L.BINDING_NAME  -- remis à jour une fois la langue chargée
 ns.BINDING = "SELECTIVELOOT_TOGGLE"
 
 ---------------------------------------------------------------------------
@@ -30,11 +32,12 @@ ns.ICON = {
 local Color, ICON = ns.Color, ns.ICON
 
 function ns.Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage(Color("gold", "SelectiveLoot") .. " : " .. msg)
+	DEFAULT_CHAT_FRAME:AddMessage(Color("gold", "SelectiveLoot") .. L.SEP .. msg)
 end
 local Print = ns.Print
 
 -- Trace des fouilles dans le chat (/sl debug), pour diagnostiquer en jeu.
+-- Volontairement en anglais : c'est un outil de diagnostic, pas un texte d'interface.
 local function Debug(msg)
 	if ns.db and ns.db.debug then
 		DEFAULT_CHAT_FRAME:AddMessage(Color("gray", "[SL debug] " .. msg))
@@ -43,7 +46,7 @@ end
 
 -- Texte affichable sans risque, même si le jeu renvoie une valeur secrète.
 local function Safe(v)
-	if type(issecretvalue) == "function" and issecretvalue(v) then return "(masqué)" end
+	if type(issecretvalue) == "function" and issecretvalue(v) then return L.SECRET end
 	return tostring(v)
 end
 
@@ -79,7 +82,7 @@ end
 function ns.WithItemLink(itemID, fn)
 	local item = Item:CreateFromItemID(itemID)
 	item:ContinueOnItemLoad(function()
-		fn(item:GetItemLink() or ("objet #" .. itemID))
+		fn(item:GetItemLink() or L.ITEM_FALLBACK:format(itemID))
 	end)
 end
 
@@ -120,6 +123,7 @@ local DEFAULTS = {
 	feedTime = 5,            -- secondes avant que les lignes s'effacent
 	feedLines = 8,           -- nombre maximum de lignes
 	feedFrameAlpha = 1,      -- opacité du cartouche parchemin derrière le nom
+	language = "auto",       -- "auto" (langue du jeu), "enUS" ou "frFR"
 }
 local FEED_KEYS = { "feed", "feedLeft", "feedScale", "feedTime", "feedLines", "feedFrameAlpha" }
 
@@ -147,8 +151,12 @@ local function InitDB()
 	ns.ignored = char.ignored
 end
 
+-- « Par défaut » sur la page principale. La langue est conservée : la changer
+-- demande de recharger l'interface.
 function ns.ResetOptions()
-	for k, v in pairs(DEFAULTS) do ns.db[k] = v end
+	for k, v in pairs(DEFAULTS) do
+		if k ~= "language" then ns.db[k] = v end
+	end
 	ns.db.feedAnchor = nil
 	ns.Fire("OPTIONS")
 end
@@ -169,9 +177,9 @@ function ns.SetIgnored(itemID, ignored)
 	ns.Fire("LIST")
 	ns.WithItemLink(itemID, function(link)
 		if ignored then
-			Print(link .. "  " .. ICON.no .. " " .. Color("red", "ignoré au ramassage"))
+			Print(link .. "  " .. ICON.no .. " " .. Color("red", L.NOW_IGNORED))
 		else
-			Print(link .. "  " .. ICON.ok .. " " .. Color("green", "ramassé à nouveau"))
+			Print(link .. "  " .. ICON.ok .. " " .. Color("green", L.NOW_LOOTED))
 		end
 	end)
 end
@@ -185,7 +193,7 @@ end
 function ns.ClearList()
 	wipe(ns.ignored)
 	ns.Fire("LIST")
-	Print(Color("green", "liste d'ignorés vidée : tout sera ramassé."))
+	Print(Color("green", L.LIST_CLEARED))
 end
 
 ---------------------------------------------------------------------------
@@ -251,7 +259,7 @@ local function FinishSession(s, fromTimer)
 	if fromTimer and s.waitingBind then return end  -- confirmation en cours : on attend le joueur
 	session = nil
 	if s.filtered > 0 then
-		Debug("fermeture de la fenêtre (objets ignorés laissés)")
+		Debug("closing the loot window (ignored items left)")
 		CloseLoot()
 	end
 end
@@ -260,7 +268,7 @@ local function OnLootReady(autoLoot)
 	local db = ns.db
 	local numItems = GetNumLootItems()
 	if numItems == 0 then
-		Debug("LOOT_READY : fenêtre vide, rien à faire")
+		Debug("LOOT_READY: empty window, nothing to do")
 		return
 	end
 
@@ -283,15 +291,15 @@ local function OnLootReady(autoLoot)
 	-- inconnue). Ainsi, un LOOT_CLOSED manquant ne peut pas bloquer les fouilles suivantes.
 	local window = key == "" and 0.5 or 2
 	if handled and handled.key == key and now - handled.time < window then
-		Debug("doublon ignoré (même source)")
+		Debug("duplicate ignored (same source)")
 		return
 	end
 	handled = { key = key, time = now }
 
 	-- autoLoot = butin auto du jeu ou Maj+clic : le client ramasse déjà tout.
 	local filtering = db.enabled and not autoLoot
-	Debug(("fouille : %d emplacement(s), butin auto du jeu/Maj = %s, filtre = %s"):format(
-		numItems, tostring(autoLoot and true or false), filtering and "oui" or "non"))
+	Debug(("loot: %d slot(s), game auto loot/Shift = %s, filter = %s"):format(
+		numItems, tostring(autoLoot and true or false), filtering and "yes" or "no"))
 	local s = { pending = {}, npending = 0, filtered = 0 }
 	local sources = {}
 	wipe(snapshot)
@@ -310,7 +318,7 @@ local function OnLootReady(autoLoot)
 			end
 			if isFiltered then
 				s.filtered = s.filtered + 1
-				Debug(("  %d : %s -> laissé"):format(slot, Safe(link or "?")))
+				Debug(("  %d: %s -> left"):format(slot, Safe(link or "?")))
 				if snapshot[slot] then ns.Fire("LEFT", snapshot[slot]) end
 				-- Un objet laissé n'est pas « ramassé » : si un autre joueur le prend,
 				-- il ne doit pas apparaître dans l'affichage du butin.
@@ -318,12 +326,12 @@ local function OnLootReady(autoLoot)
 			else
 				s.pending[slot] = true
 				s.npending = s.npending + 1
-				Debug(("  %d : %s -> ramassé"):format(slot,
+				Debug(("  %d: %s -> looted"):format(slot,
 					Safe(link or (snapshot[slot] and snapshot[slot].name) or "?")))
 				LootSlot(slot)
 			end
 		elseif locked then
-			Debug(("  %d : verrouillé (jet de dés)"):format(slot))
+			Debug(("  %d: locked (roll)"):format(slot))
 			snapshot[slot] = nil
 		end
 
@@ -358,7 +366,7 @@ local function OnLootSlotCleared(slot)
 
 	local s = session
 	if s and s.pending[slot] then
-		Debug(("  %d : ramassé, confirmé par le jeu"):format(slot))
+		Debug(("  %d: looted, confirmed by the game"):format(slot))
 		s.pending[slot] = nil
 		s.npending = s.npending - 1
 		if s.npending <= 0 then
@@ -392,9 +400,9 @@ end
 local function AddItemLine(tooltip, itemID)
 	if not itemID or IsSecret(itemID) or not ns.IsIgnored(itemID) then return end
 	if ns.db.enabled then
-		tooltip:AddLine(ICON.no .. " " .. Color("red", "Ignoré au ramassage"))
+		tooltip:AddLine(ICON.no .. " " .. Color("red", L.TT_IGNORED))
 	else
-		tooltip:AddLine(ICON.no .. " " .. Color("gray", "Ignoré au ramassage (filtre désactivé)"))
+		tooltip:AddLine(ICON.no .. " " .. Color("gray", L.TT_IGNORED_OFF))
 	end
 end
 
@@ -406,10 +414,10 @@ local function AddCorpseLine(tooltip, guid)
 	if corpse then
 		if not db.corpseInfo then return end
 		local remaining = corpse.left
-		local line = ICON.ok .. " " .. Color("green", "Fouillé")
+		local line = ICON.ok .. " " .. Color("green", L.TT_LOOTED)
 		if remaining > 0 then
-			local s = remaining > 1 and "s" or ""
-			line = line .. Color("gray", (" — %d objet%s ignoré%s laissé%s"):format(remaining, s, s, s))
+			local fmt = remaining > 1 and L.TT_LEFT_MANY or L.TT_LEFT_ONE
+			line = line .. Color("gray", fmt:format(remaining))
 		end
 		tooltip:AddLine(line)
 		return
@@ -418,7 +426,7 @@ local function AddCorpseLine(tooltip, guid)
 	if db.unlootedHint and CanLootUnit then
 		local hasLoot, canLoot = CanLootUnit(guid)
 		if not IsSecret(hasLoot) and not IsSecret(canLoot) and hasLoot and canLoot then
-			tooltip:AddLine(ICON.wait .. " " .. Color("gold", "Pas encore fouillé"))
+			tooltip:AddLine(ICON.wait .. " " .. Color("gold", L.TT_NOT_LOOTED))
 		end
 	end
 end
@@ -449,7 +457,7 @@ function SelectiveLoot_ToggleHoveredItem()
 	if not ns.db then return end
 	local itemID = GetHoveredItemID()
 	if not itemID then
-		Print(ICON.wait .. " " .. Color("gold", "survole d'abord un objet (sac, butin, banque…)."))
+		Print(ICON.wait .. " " .. Color("gold", L.HOVER_FIRST))
 		return
 	end
 	ns.SetIgnored(itemID, not ns.IsIgnored(itemID))
@@ -462,27 +470,28 @@ end
 SLASH_SELECTIVELOOT1 = "/sl"
 SLASH_SELECTIVELOOT2 = "/selectiveloot"
 SlashCmdList.SELECTIVELOOT = function(msg)
+	if not ns.db then return end
 	local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
 	cmd = cmd:lower()
 
 	if cmd == "add" or cmd == "del" then
 		local itemID = ns.ItemIDFromText(rest)
 		if not itemID then
-			Print(ICON.no .. " " .. Color("red", "objet introuvable.") .. " Utilise un lien (Maj+clic) ou un ID.")
+			Print(ICON.no .. " " .. Color("red", L.ITEM_NOT_FOUND) .. L.ITEM_NOT_FOUND_HINT)
 			return
 		end
 		ns.SetIgnored(itemID, cmd == "add")
 	elseif cmd == "debug" then
 		ns.db.debug = not ns.db.debug
 		if ns.db.debug then
-			Print(ICON.wait .. " " .. Color("gold", "trace des fouilles activée.") .. " Retape "
-				.. Color("white", "/sl debug") .. " pour l'arrêter.")
-			Print(("état : filtre %s, butin auto du jeu %s, %d objet(s) ignoré(s)"):format(
-				ns.db.enabled and Color("green", "actif") or Color("red", "désactivé"),
-				ns.IsGameAutoLootOn() and Color("red", "activé") or Color("green", "désactivé"),
+			Print(ICON.wait .. " " .. Color("gold", L.DEBUG_ON)
+				.. L.DEBUG_ON_HINT:format(Color("white", "/sl debug")))
+			Print(L.DEBUG_STATE:format(
+				ns.db.enabled and Color("green", L.WORD_ON) or Color("red", L.WORD_OFF),
+				ns.IsGameAutoLootOn() and Color("red", L.WORD_ON) or Color("green", L.WORD_OFF),
 				ns.IgnoredCount()))
 		else
-			Print(ICON.ok .. " " .. Color("green", "trace des fouilles arrêtée."))
+			Print(ICON.ok .. " " .. Color("green", L.DEBUG_OFF))
 		end
 	elseif cmd == "move" then
 		ns.SetFeedUnlocked(not ns.IsFeedUnlocked())
@@ -490,9 +499,9 @@ SlashCmdList.SELECTIVELOOT = function(msg)
 		ns.db.enabled = (cmd == "on")
 		ns.Fire("OPTIONS")
 		if ns.db.enabled then
-			Print(ICON.ok .. " " .. Color("green", "filtre activé."))
+			Print(ICON.ok .. " " .. Color("green", L.FILTER_ON_MSG))
 		else
-			Print(ICON.no .. " " .. Color("red", "filtre désactivé : tout est ramassé normalement."))
+			Print(ICON.no .. " " .. Color("red", L.FILTER_OFF_MSG))
 		end
 	else
 		ns.OpenOptions()
@@ -508,6 +517,8 @@ local handlers = {}
 function handlers.ADDON_LOADED(name)
 	if name ~= ADDON then return end
 	InitDB()
+	ns.SetLanguage(ns.db.language)
+	BINDING_NAME_SELECTIVELOOT_TOGGLE = L.BINDING_NAME
 	HookTooltips()
 	ns.Fire("INIT")
 	frame:UnregisterEvent("ADDON_LOADED")
@@ -515,8 +526,8 @@ end
 
 function handlers.PLAYER_LOGIN()
 	if ns.db.enabled and ns.IsGameAutoLootOn() then
-		Print(ICON.no .. " " .. Color("red", "le butin automatique du jeu est activé : le filtre ne peut pas fonctionner.")
-			.. " Tape " .. Color("white", "/sl") .. " pour corriger.")
+		Print(ICON.no .. " " .. Color("red", L.AUTOLOOT_WARNING)
+			.. L.AUTOLOOT_WARNING_HINT:format(Color("white", "/sl")))
 	end
 end
 

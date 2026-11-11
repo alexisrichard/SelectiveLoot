@@ -11,7 +11,7 @@
 --   - /sl move : déverrouille / verrouille le cadre.
 
 local ADDON, ns = ...
-local Color, ICON = ns.Color, ns.ICON
+local Color, ICON, L = ns.Color, ns.ICON, ns.L
 
 local ROW_H = 44         -- hauteur d'une ligne (espacement des récompenses de quête)
 local ICON_SIZE = 32
@@ -41,8 +41,7 @@ anchor:RegisterForDrag("LeftButton")
 
 local label = anchor:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 label:SetPoint("BOTTOM", anchor, "TOP", 0, 4)  -- au-dessus du cadre, pour ne pas cacher les lignes
-label:SetText("Aperçu du butin  " .. Color("white", "(glisse le cadre)"))
-label:Hide()
+label:Hide()  -- texte posé à INIT, une fois la langue connue
 
 local unlocked = false   -- /sl move
 local previewing = false -- options de l'addon ouvertes
@@ -157,7 +156,7 @@ local function NewLine()
 
 	line.sub = line:CreateFontString(nil, "ARTWORK", "GameFontRedSmall")
 	line.sub:SetJustifyH("LEFT")
-	line.sub:SetText("Laissé sur le corps")
+	line.sub:SetText(L.FEED_LEFT_ON_CORPSE)
 
 	line.appear = line:CreateAnimationGroup()
 	local fadeIn = line.appear:CreateAnimation("Alpha")
@@ -281,10 +280,10 @@ local function ShowPreviewLines()
 	for _, line in ipairs(active) do
 		if line.preview then return end
 	end
-	Push(nil, { icon = "Interface\\Icons\\INV_Misc_LeatherScrap_03", name = "Cuir léger", quality = 1 }, 3, true)
-	Push(nil, { icon = "Interface\\Icons\\INV_Boots_05", name = "Bottes du voyageur", quality = 2 }, 1, true)
-	Push(nil, { icon = "Interface\\Icons\\INV_Misc_Coin_01", name = "1 pa 12 pc", money = true }, 1, true)
-	Push(nil, { icon = "Interface\\Icons\\INV_Misc_Bone_08", name = "Croc brisé", quality = 0, left = true }, 2, true)
+	Push(nil, { icon = "Interface\\Icons\\INV_Misc_LeatherScrap_03", name = L.PREVIEW_ITEM1, quality = 1 }, 3, true)
+	Push(nil, { icon = "Interface\\Icons\\INV_Boots_05", name = L.PREVIEW_ITEM2, quality = 2 }, 1, true)
+	Push(nil, { icon = "Interface\\Icons\\INV_Misc_Coin_01", name = L.PREVIEW_MONEY, money = true }, 1, true)
+	Push(nil, { icon = "Interface\\Icons\\INV_Misc_Bone_08", name = L.PREVIEW_ITEM3, quality = 0, left = true }, 2, true)
 end
 
 local function ClearPreviewLines()
@@ -348,10 +347,10 @@ function ns.SetFeedUnlocked(on)
 	end
 	RefreshAll()
 	if unlocked then
-		ns.Print(ICON.wait .. " " .. Color("gold", "cadre du butin déplaçable.")
-			.. " Glisse-le, puis tape " .. Color("white", "/sl move") .. " pour le verrouiller.")
+		ns.Print(ICON.wait .. " " .. Color("gold", L.FEED_UNLOCKED)
+			.. L.FEED_UNLOCKED_HINT:format(Color("white", "/sl move")))
 	else
-		ns.Print(ICON.ok .. " " .. Color("green", "cadre du butin verrouillé."))
+		ns.Print(ICON.ok .. " " .. Color("green", L.FEED_LOCKED))
 	end
 	ns.Fire("FEED")
 end
@@ -398,6 +397,7 @@ end)
 ---------------------------------------------------------------------------
 ns.On(function(what, data)
 	if what == "INIT" then
+		label:SetText(L.FEED_PREVIEW_LABEL .. "  " .. Color("white", L.FEED_PREVIEW_DRAG))
 		ApplySettings()
 	elseif what == "OPTIONS" then
 		if ns.db.feed then

@@ -1,54 +1,61 @@
 # SelectiveLoot
 
-Addon pour **World of Warcraft: Forever** : tu fouilles comme d'habitude, l'addon ramasse tout **sauf** les objets que tu as choisi d'ignorer.
+*[Version française](README.fr.md)*
 
-![Panneau d'options](tests/captures/2-options-tout-ok.jpg)
+Addon for **World of Warcraft: Forever**: loot corpses as usual, and the addon picks up everything **except** the items you chose to ignore.
 
-## Fonctionnalités
+## Features
 
-- **Filtre de butin** : tout est ramassé (or, objets, monnaies), sauf les objets de ta liste d'ignorés. Les objets de quête sont toujours ramassés.
-- **Une liste par personnage** : chaque personnage a sa propre liste d'objets ignorés. Les réglages, eux, sont communs au compte.
-- **Maj+clic** sur un cadavre ramasse tout, filtre compris.
-- **Raccourci clavier** : survole un objet (sac, butin, banque…) et appuie sur ta touche pour l'ignorer ou le ramasser à nouveau.
-- **Infobulles** :
-  - objet ignoré : ligne rouge « Ignoré au ramassage » (rien n'est ajouté pour les autres objets) ;
-  - cadavre déjà fouillé : ligne verte « Fouillé », avec le nombre d'objets ignorés laissés ;
-  - cadavre pas encore fouillé : ligne jaune « Pas encore fouillé ».
-- **Affichage du butin** : la fenêtre de butin est remplacée par une liste à l'écran de ce que tu ramasses, dans le style des objets de la fenêtre de butin (icône dans son emplacement, nom sur le cartouche parchemin, couleur de qualité). Elle apparaît et disparaît en fondu, et montre aussi les objets ignorés laissés (icône grisée, croix rouge). Taille, durée, nombre de lignes et opacité du cartouche réglables. Pour la déplacer : glisse l'aperçu quand les options sont ouvertes, ou maintiens **Ctrl** et fais-la glisser en jeu.
-- **Options dans le menu du jeu** (Options > AddOns > SelectiveLoot, ou `/sl`) :
-  - état du filtre, du butin automatique du jeu et du raccourci, avec un bouton pour corriger ;
-  - choix du raccourci directement depuis le panneau, avec avertissement si la touche est déjà utilisée ;
-  - liste des objets ignorés : ajout par ID, lien ou glisser-déposer, bouton « Retirer » sur chaque ligne.
+- **Loot filter**: everything is looted (gold, items, currencies) except the items on your ignore list. Quest items are always looted.
+- **One list per character**: each character has their own ignore list. Settings are shared across the account.
+- **Shift+click** a corpse to loot everything, ignored items included.
+- **Key binding**: hover over an item (bags, loot, bank…) and press your key to ignore it, or to loot it again.
+- **Tooltips**:
+  - ignored item: red line "Ignored when looting" (nothing is added to other items);
+  - corpse already looted: green line "Looted", with the number of ignored items left on it;
+  - corpse not looted yet: yellow line "Not looted yet".
+- **Loot display**: the loot window is replaced by an on-screen list of what you pick up, styled like the items of the loot window (icon in its item slot, name on the parchment plate, quality color). Lines fade in and out, and ignored items left behind are shown too (grayed out, red cross). Size, display time, number of lines and plate opacity can be adjusted. To move it: drag the preview while the options are open, or hold **Ctrl** and drag it in game.
+- **Options in the game menu** (Options > AddOns > SelectiveLoot, or `/sl`):
+  - status of the filter, of the game's auto loot and of the key binding, with a button to fix each one;
+  - set the key binding right from the panel, with a warning if the key is already used;
+  - ignore list: add by ID, link or drag and drop, with a "Remove" button on each line;
+  - language: automatic (game language), English or French.
 
-Code couleur partout : **vert** = c'est bon, **jaune** = à faire, **rouge** = problème ou objet ignoré, **gris** = détail.
+Colors everywhere: **green** = all good, **yellow** = to do, **red** = problem or ignored item, **gray** = detail.
 
 ## Installation
 
-1. Télécharge le dépôt (bouton **Code > Download ZIP**).
-2. Copie le dossier `SelectiveLoot` dans `World of Warcraft\_forever_\Interface\AddOns\`.
-3. En jeu, tape `/sl` : si le butin automatique du jeu est activé, clique sur **Corriger** (le filtre en a besoin), puis choisis ton raccourci.
+1. Download the addon from CurseForge, or this repository (**Code > Download ZIP**).
+2. Copy the `SelectiveLoot` folder into `World of Warcraft\_forever_\Interface\AddOns\`.
+3. In game, type `/sl`: if the game's auto loot is on, click **Fix** (the filter needs it off), then choose your key binding.
 
-Ne copie pas le dossier `tests` dans le jeu.
+Don't copy the `tests` folder into the game.
 
-## Commandes
+## Commands
 
-| Commande | Effet |
+| Command | Effect |
 |---|---|
-| `/sl` | Ouvre les options |
-| `/sl add <lien ou ID>` | Ignore un objet |
-| `/sl del <lien ou ID>` | Ne l'ignore plus |
-| `/sl on` / `/sl off` | Active ou désactive le filtre |
+| `/sl` | Opens the options |
+| `/sl add <link or ID>` | Ignores an item |
+| `/sl del <link or ID>` | Stops ignoring it |
+| `/sl on` / `/sl off` | Turns the filter on or off |
+| `/sl move` | Unlocks / locks the loot display |
+| `/sl debug` | Prints a loot trace in the chat, for bug reports |
 
-## Limites connues
+## Known limits
 
-- Le scintillement des cadavres est géré par le jeu, pas par l'addon. Dans WoW Forever, il s'arrête dès qu'un corps a été fouillé, même s'il reste des objets ignorés dessus : l'infobulle « Fouillé » indique combien il en reste.
-- La fenêtre de butin peut s'afficher une fraction de seconde avant de se refermer quand il ne reste que des objets ignorés.
-- Si le jeu masque l'identité des cadavres aux addons, les lignes « Fouillé » / « Pas encore fouillé » n'apparaissent pas. Le filtre continue de fonctionner.
+- The corpse sparkle is handled by the game, not by the addon. In WoW Forever it stops as soon as a corpse has been looted, even if ignored items are still on it: the "Looted" tooltip line tells you how many are left.
+- The loot window may flash for a split second before closing when only ignored items are left.
+- If the game hides corpse identities from addons, the "Looted" / "Not looted yet" lines don't appear. The filter keeps working.
+
+## Translations
+
+English and French are included. Texts are in [`SelectiveLoot/Locales.lua`](SelectiveLoot/Locales.lua): to add a language, copy the `enUS` table, translate it, and add the language to `ns.LANGUAGES`.
 
 ## Tests
 
-`tests/!SelectiveLootSandbox` simule le butin, des cadavres, un sac, le menu Options et les raccourcis pour tester l'addon dans [wow-addons-sandbox](https://github.com/srrmke/wow-addons-sandbox) sans lancer le jeu. Les captures sont dans `tests/captures`.
+`tests/!SelectiveLootSandbox` simulates loot, corpses, a bag, the Options menu and key bindings to test the addon in [wow-addons-sandbox](https://github.com/srrmke/wow-addons-sandbox) without launching the game. Screenshots are in `tests/captures`.
 
-## Licence
+## License
 
-[MIT](LICENSE) : tu peux utiliser, modifier et redistribuer l'addon librement, à condition de garder la mention de copyright.
+[MIT](LICENSE): you can use, modify and share the addon freely, as long as you keep the copyright notice.
