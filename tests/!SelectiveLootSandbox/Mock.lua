@@ -7,13 +7,13 @@
 ---------------------------------------------------------------------------
 -- id = { nom, qualité, classID, icône, prix de vente (pc) }
 local ITEMS = {
-	[2589]  = { "Tissu de lin", 1, 7, "Interface\\Icons\\INV_Fabric_Linen_01", 13 },
-	[4306]  = { "Tissu de soie", 1, 7, "Interface\\Icons\\INV_Fabric_Silk_01", 150 },
-	[2318]  = { "Cuir léger", 1, 7, "Interface\\Icons\\INV_Misc_LeatherScrap_03", 15 },
-	[7073]  = { "Croc brisé", 0, 15, "Interface\\Icons\\INV_Misc_Bone_08", 6 },
-	[7074]  = { "Griffe ébréchée", 0, 15, "Interface\\Icons\\INV_Misc_MonsterClaw_04", 4 },
-	[6197]  = { "Bottes de la Confrérie", 2, 4, "Interface\\Icons\\INV_Boots_05", 412 },
-	[50001] = { "Croc de loup des bois", 1, 12, "Interface\\Icons\\INV_Misc_MonsterFang_01", 0 },
+	[2589]  = { "Linen Cloth", 1, 7, "Interface\\Icons\\INV_Fabric_Linen_01", 13 },
+	[4306]  = { "Silk Cloth", 1, 7, "Interface\\Icons\\INV_Fabric_Silk_01", 150 },
+	[2318]  = { "Light Leather", 1, 7, "Interface\\Icons\\INV_Misc_LeatherScrap_03", 15 },
+	[7073]  = { "Broken Fang", 0, 15, "Interface\\Icons\\INV_Misc_Bone_08", 6 },
+	[7074]  = { "Chipped Claw", 0, 15, "Interface\\Icons\\INV_Misc_MonsterClaw_04", 4 },
+	[6197]  = { "Brotherhood Boots", 2, 4, "Interface\\Icons\\INV_Boots_05", 412 },
+	[50001] = { "Timber Wolf Fang", 1, 12, "Interface\\Icons\\INV_Misc_MonsterFang_01", 0 },
 }
 
 ITEM_QUALITY_COLORS = {}
@@ -30,9 +30,9 @@ end
 local function Money(copper)
 	local g, s, c = math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100
 	local parts = {}
-	if g > 0 then parts[#parts + 1] = g .. " po" end
-	if s > 0 then parts[#parts + 1] = s .. " pa" end
-	if c > 0 or #parts == 0 then parts[#parts + 1] = c .. " pc" end
+	if g > 0 then parts[#parts + 1] = g .. " Gold" end
+	if s > 0 then parts[#parts + 1] = s .. " Silver" end
+	if c > 0 or #parts == 0 then parts[#parts + 1] = c .. " Copper" end
 	return table.concat(parts, " ")
 end
 
@@ -84,7 +84,7 @@ Enum.TooltipDataType = { Item = 0, Unit = 2 }
 
 SOUNDKIT = SOUNDKIT or { IG_MAINMENU_OPTION_CHECKBOX_ON = 856, IG_MAINMENU_OPTION_CHECKBOX_OFF = 857 }
 GameTooltip_Hide = function() GameTooltip:Hide() end
-YES, NO = "Oui", "Non"
+YES, NO = "Yes", "No"
 HandleModifiedItemClick = function() end
 ConfirmLootSlot = function() end
 
@@ -108,7 +108,7 @@ local cursorItem
 local cursorLabel = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 cursorLabel:SetPoint("TOP", UIParent, "TOP", 0, -6)
 local function UpdateCursor()
-	cursorLabel:SetText(cursorItem and ("Sur le curseur : " .. Link(cursorItem) .. "  (clic droit dans le sac pour reposer)") or "")
+	cursorLabel:SetText(cursorItem and ("On cursor: " .. Link(cursorItem) .. "  (right-click in the bag to put it back)") or "")
 end
 GetCursorInfo = function()
 	if cursorItem then return "item", cursorItem, Link(cursorItem) end
@@ -122,7 +122,7 @@ end
 -- Raccourcis clavier
 ---------------------------------------------------------------------------
 local binds = { X = "SITORSTAND" }
-BINDING_NAME_SITORSTAND = "S'asseoir / Se lever"
+BINDING_NAME_SITORSTAND = "Sit / Stand"
 
 GetBindingKey = function(action)
 	local keys = {}
@@ -140,7 +140,7 @@ end
 SaveBindings = function() __FireEvent("UPDATE_BINDINGS") end
 GetCurrentBindingSet = function() return 1 end
 GetBindingText = function(key)
-	return (key:gsub("CTRL", "Ctrl"):gsub("SHIFT", "Maj"):gsub("ALT", "Alt"))
+	return (key:gsub("CTRL", "Ctrl"):gsub("SHIFT", "Shift"):gsub("ALT", "Alt"))
 end
 
 local MODS = { SHIFT = true, CONTROL = true, ALT = true, LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true }
@@ -181,15 +181,15 @@ end
 GameTooltip.SetItemByID = function(self, id)
 	local it = ITEMS[id]
 	if not it then
-		self:SetText("Objet " .. tostring(id))
+		self:SetText("Item " .. tostring(id))
 		return
 	end
 	tipItem = id
 	self:ClearLines()
 	local c = ITEM_QUALITY_COLORS[it[2]]
 	self:AddLine(it[1], c.r, c.g, c.b)
-	if it[3] == 12 then self:AddLine("Objet de quête", 1, 1, 1) end
-	if it[5] > 0 then self:AddLine("Prix de vente : " .. Money(it[5]), 1, 1, 1) end
+	if it[3] == 12 then self:AddLine("Quest Item", 1, 1, 1) end
+	if it[5] > 0 then self:AddLine("Sell Price: " .. Money(it[5]), 1, 1, 1) end
 	RunPost(self, Enum.TooltipDataType.Item, { type = 0, id = id })
 	self:Show()
 end
@@ -215,7 +215,7 @@ swTitle:SetText("Options")
 local nav = settingsWin:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 nav:SetPoint("TOPLEFT", settingsWin, "TOPLEFT", 24, -50)
 nav:SetJustifyH("LEFT")
-nav:SetText("|cff9d9d9dJeu|r\n\n|cffffd100AddOns|r")
+nav:SetText("|cff9d9d9dGame|r\n\n|cffffd100AddOns|r")
 
 local canvas = CreateFrame("Frame", nil, settingsWin)
 canvas:SetPoint("TOPLEFT", settingsWin, "TOPLEFT", 220, -44)
@@ -224,11 +224,11 @@ canvas:SetPoint("BOTTOMRIGHT", settingsWin, "BOTTOMRIGHT", -16, 50)
 local defaultsBtn = CreateFrame("Button", nil, settingsWin, "UIPanelButtonTemplate")
 defaultsBtn:SetSize(120, 22)
 defaultsBtn:SetPoint("BOTTOMLEFT", settingsWin, "BOTTOMLEFT", 20, 16)
-defaultsBtn:SetText("Par défaut")
+defaultsBtn:SetText("Defaults")
 local closeBtn = CreateFrame("Button", nil, settingsWin, "UIPanelButtonTemplate")
 closeBtn:SetSize(120, 22)
 closeBtn:SetPoint("BOTTOMRIGHT", settingsWin, "BOTTOMRIGHT", -20, 16)
-closeBtn:SetText("Fermer")
+closeBtn:SetText("Close")
 closeBtn:SetScript("OnClick", function() settingsWin:Hide() end)
 
 local categories, navButtons = {}, {}
@@ -293,7 +293,7 @@ bagFrame:SetSize(8 * 40 + 20, 4 * 40 + 40)
 bagFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 20)
 local bagTitle = bagFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 bagTitle:SetPoint("TOPLEFT", bagFrame, "TOPLEFT", 12, -10)
-bagTitle:SetText("Sac à dos")
+bagTitle:SetText("Backpack")
 
 local bagButtons = {}
 local function RefreshBag()
@@ -354,13 +354,13 @@ end
 ---------------------------------------------------------------------------
 local function NewCorpses()
 	return {
-		{ guid = "Creature-0-1-0-1-299-0001", name = "Loup des bois", info = "Niveau 6 Bête",
+		{ guid = "Creature-0-1-0-1-299-0001", name = "Timber Wolf", info = "Level 6 Beast",
 			loot = { { id = 2318, count = 2 }, { id = 7073, count = 1 }, { money = 23 } } },
-		{ guid = "Creature-0-1-0-1-116-0002", name = "Bandit défias", info = "Niveau 9 Humanoïde",
+		{ guid = "Creature-0-1-0-1-116-0002", name = "Defias Bandit", info = "Level 9 Humanoid",
 			loot = { { id = 2589, count = 3 }, { id = 7074, count = 1 }, { id = 6197, count = 1 }, { money = 112 } } },
-		{ guid = "Creature-0-1-0-1-1125-0003", name = "Sanglier des rochers", info = "Niveau 7 Bête",
+		{ guid = "Creature-0-1-0-1-1125-0003", name = "Rockhide Boar", info = "Level 7 Beast",
 			loot = { { id = 50001, count = 1 }, { id = 7073, count = 2 } } },
-		{ guid = "Creature-0-1-0-1-117-0004", name = "Bandit défias", info = "Niveau 10 Humanoïde",
+		{ guid = "Creature-0-1-0-1-117-0004", name = "Defias Bandit", info = "Level 10 Humanoid",
 			loot = { { id = 4306, count = 1 }, { id = 2589, count = 2 } } },
 	}
 end
@@ -403,7 +403,7 @@ local function RefreshLootWin()
 			lines[#lines + 1] = e.money and Money(e.money) or (Link(e.id) .. (e.count > 1 and (" x" .. e.count) or ""))
 		end
 	end
-	lootTitle:SetText("Butin : " .. lootCorpse.name)
+	lootTitle:SetText("Loot: " .. lootCorpse.name)
 	lootText:SetText(table.concat(lines, "\n"))
 	lootWin:SetHeight(40 + #lines * 14)
 	lootWin:Show()
@@ -455,10 +455,10 @@ LootSlot = function(s)
 			end
 		end
 		if e.money then
-			GameMessage("Vous ramassez " .. Money(e.money) .. ".")
+			GameMessage("You loot " .. Money(e.money) .. ".")
 		else
 			AddToBag(e.id, e.count)
-			GameMessage("Vous recevez le butin : " .. Link(e.id) .. (e.count > 1 and ("x" .. e.count) or "") .. ".")
+			GameMessage("You receive loot: " .. Link(e.id) .. (e.count > 1 and ("x" .. e.count) or "") .. ".")
 		end
 		__FireEvent("LOOT_SLOT_CLEARED", s)
 		RefreshLootWin()
@@ -474,7 +474,7 @@ end
 local function OpenLoot(c, forceAuto)
 	if lootSlots then CloseLoot() end
 	if #c.loot == 0 then
-		DEFAULT_CHAT_FRAME:AddMessage("Ce cadavre est vide.", 1, 0.1, 0.1)
+		DEFAULT_CHAT_FRAME:AddMessage("This corpse is empty.", 1, 0.1, 0.1)
 		return
 	end
 	lootCorpse, lootSlots = c, {}
@@ -498,11 +498,11 @@ world:SetSize(280, 330)
 world:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 20, -40)
 local worldTitle = world:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 worldTitle:SetPoint("TOPLEFT", world, "TOPLEFT", 12, -10)
-worldTitle:SetText("Cadavres (simulation)")
+worldTitle:SetText("Corpses (simulation)")
 local worldHelp = world:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
 worldHelp:SetPoint("TOPLEFT", worldTitle, "BOTTOMLEFT", 0, -4)
 worldHelp:SetJustifyH("LEFT")
-worldHelp:SetText("Survol = infobulle   Clic = fouiller\nClic droit = Maj+clic (tout ramasser)")
+worldHelp:SetText("Hover = tooltip   Click = loot\nRight-click = Shift+click (loot all)")
 
 local corpseButtons = {}
 function RefreshCorpses()
@@ -518,7 +518,7 @@ function RefreshCorpses()
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 				GameTooltip:AddLine(corpse.name, 1, 0.1, 0.1)
 				GameTooltip:AddLine(corpse.info, 1, 1, 1)
-				GameTooltip:AddLine("Cadavre", 0.6, 0.6, 0.6)
+				GameTooltip:AddLine("Corpse", 0.6, 0.6, 0.6)
 				RunPost(GameTooltip, Enum.TooltipDataType.Unit, { type = 2, guid = corpse.guid })
 				GameTooltip:Show()
 			end)
@@ -532,7 +532,7 @@ function RefreshCorpses()
 			corpseButtons[i] = b
 		end
 		b.index = i
-		local sparkle = #c.loot > 0 and "  |cffffd100(scintille)|r" or "  |cff9d9d9d(vide)|r"
+		local sparkle = #c.loot > 0 and "  |cffffd100(sparkles)|r" or "  |cff9d9d9d(empty)|r"
 		b:SetText(c.name .. sparkle)
 	end
 end
@@ -540,7 +540,7 @@ end
 local respawn = CreateFrame("Button", nil, world, "UIPanelButtonTemplate")
 respawn:SetSize(124, 22)
 respawn:SetPoint("BOTTOMLEFT", world, "BOTTOMLEFT", 12, 14)
-respawn:SetText("Réapparition")
+respawn:SetText("Respawn")
 respawn:SetScript("OnClick", function()
 	if lootSlots then CloseLoot() end
 	corpses = NewCorpses()
