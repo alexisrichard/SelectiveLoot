@@ -46,3 +46,7 @@ Ne copie pas le dossier `tests` dans le jeu.
 ## Tests
 
 `tests/!SelectiveLootSandbox` simule le butin, des cadavres, un sac, le menu Options et les raccourcis pour tester l'addon dans [wow-addons-sandbox](https://github.com/srrmke/wow-addons-sandbox) sans lancer le jeu. Les captures sont dans `tests/captures`.
+
+## Licence
+
+[MIT](LICENSE) : tu peux utiliser, modifier et redistribuer l'addon librement, à condition de garder la mention de copyright.
