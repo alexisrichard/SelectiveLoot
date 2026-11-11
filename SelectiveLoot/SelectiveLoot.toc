@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: SelectiveLoot
+## Notes: Ramasse tout le butin sauf les objets de ta liste d'ignorés.
+## Author: Alexis
+## Version: 1.1.0
+## SavedVariables: SelectiveLootDB
+## IconTexture: Interface\Icons\INV_Misc_Bag_10
+## AddonCompartmentFunc: SelectiveLoot_OpenOptions
+
+Core.lua
+Options.lua

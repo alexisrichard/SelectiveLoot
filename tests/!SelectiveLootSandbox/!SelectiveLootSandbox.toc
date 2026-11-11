@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: SelectiveLoot - simulation (sandbox uniquement)
+## Notes: Simule le butin, les cadavres, le sac, le menu Options et les raccourcis pour tester SelectiveLoot dans wow-addons-sandbox. Ne pas installer dans le jeu.
+## Version: 1.0
+
+Mock.lua

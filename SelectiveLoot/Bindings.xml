@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="SELECTIVELOOT_TOGGLE" header="SELECTIVELOOT" category="ADDONS">
+		SelectiveLoot_ToggleHoveredItem()
+	</Binding>
+</Bindings>
